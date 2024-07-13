@@ -39,8 +39,6 @@ def duration_calc(playlist_data):  # high, low, mean, median
 
 
 def popularity_calc(playlist_data):
-    total_popularity = 0
-    popularity_list = []
 
     def get_popularity_list(playlist_data):
         popularities = []
@@ -48,6 +46,7 @@ def popularity_calc(playlist_data):
             popularities.append(track['track_popularity'])
         return popularities
 
+    popularity_list = []
     if 'playlist_name' in playlist_data[0]:
         popularity_list = get_popularity_list(playlist_data)
     elif 'playlist_name' in playlist_data[0][0]:
