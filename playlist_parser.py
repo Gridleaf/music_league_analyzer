@@ -34,19 +34,33 @@ def normalize_string(string):
     return ''.join(ch for ch in string if ch.isalnum() or ch == "-")  # keep letter, numbers, and '-'
 
 
-def duration_calc(playlist_data):  # high, low, average, median
+def duration_calc(playlist_data):  # high, low, mean, median
     return
 
 
 def popularity_calc(playlist_data):
     total_popularity = 0
     popularity_list = []
+
+    def get_popularity_list(playlist_data):
+        popularities = []
+        for track in playlist_data[1::]:
+            popularities.append(track['track_popularity'])
+        return popularities
+
     if 'playlist_name' in playlist_data[0]:
-        print(playlist_data[0]['playlist_name'])
+        popularity_list = get_popularity_list(playlist_data)
     elif 'playlist_name' in playlist_data[0][0]:
         for playlist in playlist_data:
-            popularity_calc(playlist)
-    return
+            popularity_list.extend(get_popularity_list(playlist))
+
+    sum_popularity = sum(popularity_list)
+    median_popularity = int_list_median(popularity_list)
+    mean_popularity = round(sum_popularity / len(popularity_list), 1)
+    low_popularity = min(popularity_list)
+    high_popularity = max(popularity_list)
+
+    return low_popularity, high_popularity, median_popularity, mean_popularity
 
 
 def year_calc(playlist_data):

@@ -5,7 +5,7 @@ from math import floor
 
 def playlist_track_data(playlist_id):
     playlist_json = get_playlist(token, playlist_id)
-    playlist_name = playlist_json['name'].encode('utf-8')
+    playlist_name = playlist_json['name']
 
     playlist_data = [{'playlist_name': playlist_name}]  # first index is metadata
 
@@ -13,7 +13,7 @@ def playlist_track_data(playlist_id):
     total_duration = 0
 
     for _ in playlist_json['tracks']['items']:
-        track_name = playlist_json['tracks']['items'][total_track_counter]['track']['name'].encode('utf-8')
+        track_name = playlist_json['tracks']['items'][total_track_counter]['track']['name']
         track_duration_ms = playlist_json['tracks']['items'][total_track_counter]['track']['duration_ms']
         total_duration += track_duration_ms
         track_popularity = playlist_json['tracks']['items'][total_track_counter]['track']['popularity']
@@ -24,7 +24,7 @@ def playlist_track_data(playlist_id):
         track_artists = []
         for artist in playlist_artist_data:  # must iterate over and scrape artist IDs for genre info
             artist_ids.append(artist['id'])
-            track_artists.append(artist['name'].encode('utf-8'))
+            track_artists.append(artist['name'])
         track_genres = []
         artists_data = get_artists(token, artist_ids)  # multiple artists in 1 request
         for artist in artists_data['artists']:

@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
 html_file = 'musicleague-S02.html'
-html_path = f'D:\Desktop\projects\musicLeagueAnalysis\data\{html_file}'
+html_path = f'data\{html_file}'
 
 
 def season_id_scraper():
@@ -15,5 +15,4 @@ def season_id_scraper():
     for link in spotify_links:
         playlist_id_list.append(link.replace("https://open.spotify.com/playlist/", ""))
     return playlist_id_list
-
 
