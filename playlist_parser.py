@@ -5,7 +5,7 @@ from league_season_link_scraper import season_id_scraper
 from playlist_scraper import playlist_track_data, multiplaylist_track_data
 
 
-def ms_to_minutes_seconds(time_ms):
+def ms_to_readable_time(time_ms):
     raw_minutes = (time_ms / 1000) / 60
     time_minutes = floor(raw_minutes)
     time_seconds = floor((raw_minutes - time_minutes) * 60)
@@ -29,12 +29,28 @@ def get_datestamp():
     return time_now.strftime("%Y-%m-%d")
 
 
-def normalize_string(string):
-    string = string.replace(" ", "-")
-    return ''.join(ch for ch in string if ch.isalnum() or ch == "-")  # keep letter, numbers, and '-'
+# def normalize_string(string):
+#     string = string.replace(" ", "-")
+#     return ''.join(ch for ch in string if ch.isalnum() or ch == "-")  # keep letter, numbers, and '-'
+
+
+def list_getter(playlist_data, function_name):
+    return_list = []
+    if 'playlist_name' in playlist_data[0]:  # checks if single or multiple playlists
+        return_list = function_name(playlist_data)
+    elif 'playlist_name' in playlist_data[0][0]:
+        for playlist in playlist_data:
+            return_list.extend(function_name(playlist))
+    return return_list
 
 
 def duration_calc(playlist_data):  # high, low, mean, median
+    duration_list = []
+    if 'playlist_name' in playlist_data[0]:
+        print('1')
+    elif 'playlist_name' in playlist_data[0][0]:
+        for playlist in playlist_data:
+            print('2')
     return
 
 
@@ -46,12 +62,7 @@ def popularity_calc(playlist_data):
             popularities.append(track['track_popularity'])
         return popularities
 
-    popularity_list = []
-    if 'playlist_name' in playlist_data[0]:
-        popularity_list = get_popularity_list(playlist_data)
-    elif 'playlist_name' in playlist_data[0][0]:
-        for playlist in playlist_data:
-            popularity_list.extend(get_popularity_list(playlist))
+    popularity_list = list_getter(playlist_data, get_popularity_list)
 
     sum_popularity = sum(popularity_list)
     median_popularity = int_list_median(popularity_list)
