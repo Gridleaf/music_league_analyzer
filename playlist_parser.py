@@ -34,6 +34,10 @@ def get_datestamp():
 #     return ''.join(ch for ch in string if ch.isalnum() or ch == "-")  # keep letter, numbers, and '-'
 
 
+def range_generator(data_list, interval):
+    return
+
+
 def list_getter(playlist_data, function_name):
     return_list = []
     if 'playlist_name' in playlist_data[0]:  # checks if single or multiple playlists
@@ -86,8 +90,8 @@ def export_csv(playlist_data):
     playlist_counter = 1
 
     def write_playlist_csv(playlist_data):
-        with open(f'data\playlist-{playlist_counter:02d}_{datestamp}.csv', 'w', newline='') as csv_file:
-            writer = csv.writer(csv_file)
+        with open(f'data\playlist-{playlist_counter:02d}_{datestamp}.csv', 'w', newline='', encoding='utf-8') as csv_file:
+            writer = csv.writer(csv_file, delimiter=';')
             fields = [
                 "track_name",
                 "artist_name",
@@ -133,3 +137,10 @@ def import_json(json_datestamp):
     with open(f'data\playlist-export_{json_datestamp}.json', 'r', encoding='utf-8') as json_file:
         data = json.load(json_file)
         return data
+
+
+def import_csv():
+    return
+
+def merge_csv():
+    return
