@@ -1,4 +1,5 @@
 import csv, json
+import pandas as pd
 from math import floor
 from datetime import datetime
 from league_season_link_scraper import season_id_scraper
@@ -89,18 +90,7 @@ def export_csv(playlist_data):
     datestamp = get_datestamp()
     playlist_counter = 1
 
-    def write_playlist_csv(playlist_data):
-        with open(f'data\playlist-{playlist_counter:02d}_{datestamp}.csv', 'w', newline='', encoding='utf-8') as csv_file:
-            writer = csv.writer(csv_file, delimiter=';')
-            fields = [
-                "track_name",
-                "artist_name",
-                "track_duration_ms",
-                "album_year",
-                "genres",
-                "track_popularity",
-                "playlist_name"
-            ]
+    def write_playlist_csv(playlist_data, writer):
             writer.writerow(fields)
 
             track_index = 1  # skip metadata
@@ -117,30 +107,41 @@ def export_csv(playlist_data):
                 writer.writerow(row_data)
                 track_index += 1
 
-    if 'playlist_name' in playlist_data[0]:
-        write_playlist_csv(playlist_data)
-    if 'playlist_name' in playlist_data[0][0]:
-        for playlist in playlist_data:
-            write_playlist_csv(playlist)
-            playlist_counter += 1
+    with open(f'data/playlist-export_{datestamp}.csv', 'w', newline='', encoding='utf-8') as csv_file:
+        writer = csv.writer(csv_file, delimiter=';')
+        fields = [
+            "track_name",
+            "artist_name",
+            "track_duration_ms",
+            "album_year",
+            "genres",
+            "track_popularity",
+            "playlist_name"
+        ]
+
+        if 'playlist_name' in playlist_data[0]:
+            write_playlist_csv(playlist_data, writer)
+        if 'playlist_name' in playlist_data[0][0]:
+            for playlist in playlist_data:
+                write_playlist_csv(playlist, writer)
+                playlist_counter += 1
     return
 
 
 def export_json(playlist_data):
     datestamp = get_datestamp()
-    with open(f'data\playlist-export_{datestamp}.json', 'w', encoding='utf-8') as json_file:
+    with open(f'data/playlist-export_{datestamp}.json', 'w', encoding='utf-8') as json_file:
         json.dump(playlist_data, json_file, ensure_ascii=True, indent=4)
     return
 
 
 def import_json(json_datestamp):
-    with open(f'data\playlist-export_{json_datestamp}.json', 'r', encoding='utf-8') as json_file:
+    with open(f'data/playlist-export_{json_datestamp}.json', 'r', encoding='utf-8') as json_file:
         data = json.load(json_file)
         return data
 
 
-def import_csv():
-    return
-
-def merge_csv():
-    return
+def import_csv(csv_datestamp):
+    playlist_counter = 1
+    csv_data = pd.read_csv(f'data/playlist-export_{csv_datestamp}.csv', delimiter=';', encoding='utf-8')
+    return csv_data
