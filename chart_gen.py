@@ -43,12 +43,20 @@ def csv_genre_aggregator(csv_data):
     return genre_dict
 
 
-def data_filter(json_data, minimum, maximum):
+def data_filter(json_data, minimum, maximum, limit):
     new_data = {}
     for key, value in json_data.items():
-        if minimum <= value <= maximum:
+        if minimum <= value <= maximum and key != '':  # exclude empty, ie. no genre
             new_data[key] = value
     new_data = dict(sorted(new_data.items(), key=lambda item: item[1], reverse=True))
+    if limit > 0:
+        limit_data = {}
+        count = 1
+        for key, value in new_data.items():
+            if count <= limit:
+                limit_data[key] = value
+                count += 1
+        new_data = limit_data
     return new_data
 
 
@@ -56,9 +64,10 @@ def bar_chart_gen(json_data, stat_type, comparison_type):
     data_keys = list(json_data.keys())
     data_values = list(json_data.values())
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(10, 14))  # dimensions
+    plt.style.use('seaborn-v0_8-darkgrid')
     plt.xticks(rotation=45, ha='right')
-    plt.yticks(np.arange(0, max(data_values) + 1, 1))
+    plt.yticks(np.arange(0, max(data_values) + 1, 2))  # y tick interval
 
     title_object = chart_title_gen(stat_type, comparison_type)
     plt.title(title_object['chart_title'])
