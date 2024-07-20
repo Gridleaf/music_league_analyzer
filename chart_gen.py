@@ -14,7 +14,13 @@ def chart_title_gen(stat_type, comparison_type):
     match stat_type:
         case 'genres':
             title_object['chart_title'] = "Artist Genres"
-            title_object['xaxis_title'] = 'Genre'
+            title_object['xaxis_title'] = "Genre"
+        case 'track_duration_ms':
+            title_object['chart_title'] = "Track Durations"
+            title_object["xaxis_title"] = "Duration (seconds)"
+        case 'track_popularity':
+            title_object['chart_title'] = "Track Popularity"
+            title_object["xaxis_title"] = "Popularity"
     match comparison_type:
         case 'occurrences':
             title_object['yaxis_title'] = 'Occurrences'
@@ -41,6 +47,11 @@ def csv_genre_aggregator(csv_data):
             if genre in genre_dict:
                 genre_dict[genre] += 1
     return genre_dict
+
+
+def interval_gen(filtered_json_data, interval):
+    new_data = {}
+    return
 
 
 def data_filter(json_data, minimum, maximum, limit):
