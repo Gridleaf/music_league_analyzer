@@ -1,5 +1,5 @@
 from spotify_api_interface import token, get_playlist, get_artists
-from league_season_link_scraper import season_id_scraper
+from season_id_scraper import season_id_scraper
 from math import floor
 
 
