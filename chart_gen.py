@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from parsing_tools import import_csv
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -74,34 +73,49 @@ def x_filter(json_data, x_min=0, x_max=float('inf'), y_start=0, y_end=float('inf
     return new_data
 
 
-def bar_chart_gen(json_data, x_stat_type, y_stat_type, horiz_true=False):
+def value_labels(x, y, horizontal):
+    if not horizontal:
+        for i in range(len(x)):
+            plt.text(i, y[i], y[i], ha='center')
+    if horizontal:
+        for i in range(len(x))[::-1]:  # reverse for descending order
+            plt.text(y[i], i, y[i], va='center')
+
+
+def bar_chart_gen(json_data, x_stat_type, y_stat_type, horizontal=False, ascending=False):
     data_keys = list(json_data.keys())
     data_values = list(json_data.values())
     title_object = chart_title_gen(x_stat_type, y_stat_type)
     plt.style.use('pitayasmoothie-dark.mplstyle')  # third-party dark background theme; not included
     # plt.style.use('seaborn-v0_8-darkgrid')  # built-in light theme
-    x_tick_interval = 2
-    x_chart_dimension = 18  # dimensions are reversed in horizontal
+    x_tick_interval = 4
+    x_chart_dimension = 12  # dimensions are reversed in horizontal
     y_chart_dimension = 8
-    title_size = 16
-    label_size = 12
+    title_size = 24
+    label_size = 14
 
-    if not horiz_true:
+    if ascending:
+        data_keys = list(reversed(data_keys))  # reversed for descending order
+        data_values = list(reversed(data_values))
+
+    if not horizontal:
         plt.figure(figsize=(x_chart_dimension, y_chart_dimension))
         plt.xticks(rotation=90, ha='center')
         plt.yticks(np.arange(0, max(data_values) + 1, x_tick_interval))  # y tick interval
-        plt.title(title_object['chart_title'], fontsize=title_size)
-        plt.xlabel(title_object['xaxis_title'], fontsize=label_size)
-        plt.ylabel(title_object['yaxis_title'], fontsize=label_size)
-        plt.bar(data_keys, data_values, width=0.8)
-    elif horiz_true:
-        plt.figure(figsize=(y_chart_dimension, x_chart_dimension))  # inverted in horizonal
         plt.title(title_object['chart_title'], fontsize=title_size, fontweight='bold')
-        plt.xlabel(title_object['yaxis_title'], fontsize=label_size)  # titles are reversed in horizontal
-        plt.ylabel(title_object['xaxis_title'], fontsize=label_size)
+        plt.xlabel(title_object['xaxis_title'], fontsize=label_size, fontweight='bold')
+        plt.ylabel(title_object['yaxis_title'], fontsize=label_size, fontweight='bold')
+        value_labels(data_keys, data_values, horizontal)
+        plt.bar(data_keys, data_values, width=0.8)
+    elif horizontal:
+        plt.figure(figsize=(y_chart_dimension, x_chart_dimension))  # inverted in horizonal
+        plt.title(title_object['chart_title'], fontsize=title_size, fontweight='bold', pad=0)
+        plt.xlabel(title_object['yaxis_title'], fontsize=label_size, fontweight='bold')  # titles are reversed in horizontal
+        plt.ylabel(title_object['xaxis_title'], fontsize=label_size, fontweight='bold')
         plt.xticks(np.arange(0, max(data_values) + 1, x_tick_interval))
-        data_keys = list(reversed(data_keys))  # reversed for descending order
-        data_values = list(reversed(data_values))
+        value_labels(data_keys, data_values, horizontal)
+        # plt.text(0.5, 0.2, "Hello")
+        plt.annotate("*Track artist genre\nMidhunters Music League Season 2", xy=(1,-0.1), xycoords='axes fraction', ha='right')
         plt.barh(data_keys, data_values)
 
     plt.savefig(f'charts/bar.png', dpi=300, bbox_inches='tight')  # tight fixes padding and margin

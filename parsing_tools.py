@@ -1,9 +1,4 @@
-import csv, json
-import pandas as pd
 from math import floor
-from datetime import datetime
-from season_id_scraper import season_id_scraper
-from playlist_aggregator import playlist_track_data, multiplaylist_track_data
 
 
 def multiplaylist_check(json_data):  # return True if multiple playlists
@@ -86,4 +81,3 @@ def year_calc(playlist_data):
 
 def genre_calc(playlist_data):
     return
-
