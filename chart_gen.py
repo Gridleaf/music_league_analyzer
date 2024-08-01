@@ -19,7 +19,7 @@ def chart_title_gen(stat_type, comparison_type):
             title_object['chart_title'] = "Track Durations"
             title_object["xaxis_title"] = "Duration (seconds)"
         case 'track_popularity':
-            title_object['chart_title'] = "Track Popularity"
+            title_object['chart_title'] = "Track Popularity*"
             title_object["xaxis_title"] = "Popularity"
     match comparison_type:
         case 'occurrences':
@@ -69,6 +69,7 @@ def stat_time_aggregator(csv_data):  # same as general aggregator, but divides b
     return new_data
 
 
+# TODO: not giving every interval in popularity
 def x_interval_gen(stat_json, interval):
     sorted_data = dict(sorted(stat_json.items()))
     keys = []
@@ -76,6 +77,7 @@ def x_interval_gen(stat_json, interval):
     for key, value in sorted_data.items():
         keys.append(key)  # easier to work with lists, and uses max(keys) for while loop
         values.append(value)
+    print(keys, values)
 
     new_data = {}
     interval_end = interval - 1
@@ -87,10 +89,11 @@ def x_interval_gen(stat_json, interval):
             current_sum += values[count]
             count += 1
         else:  # if greater than current interval, add sum to dict, increase interval, reset sum
-            new_data[f'{interval_start}—{interval_end}'] = current_sum
+            new_data[f'{interval_start} — {interval_end}'] = current_sum
             interval_start += interval
             interval_end += interval
             current_sum = 0
+    print(new_data)
     return new_data
 
 
@@ -123,6 +126,7 @@ def value_labels(x, y, horizontal):
             plt.text(y[i], i, y[i], va='center')
 
 
+# TODO: reformat repetitions
 def bar_chart_gen(json_data, x_stat_type, y_stat_type, labels=True, horizontal=False, reverse=False):
     data_keys = list(json_data.keys())
     data_values = list(json_data.values())
