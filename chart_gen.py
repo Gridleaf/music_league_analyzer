@@ -9,11 +9,12 @@ pd.set_option('display.max_columns', 500)
 def chart_title_gen(stat_type, comparison_type):
     # stat types: genre, track_popularity, track_duration_ms
     # value types: occurrences, ...
-    title_object = {}
+    title_object = {'note': ''}
     match stat_type:
         case 'genres':
             title_object['chart_title'] = "Most Submitted Genres*"
             title_object['xaxis_title'] = "Genre"
+            title_object['note'] = "*Track artist genres"
         case 'track_duration_ms':
             title_object['chart_title'] = "Track Durations"
             title_object["xaxis_title"] = "Duration (seconds)"
@@ -48,9 +49,49 @@ def csv_genre_aggregator(csv_data):
     return genre_dict
 
 
-def interval_gen(filtered_json_data, interval):
+def stat_general_aggregator(csv_data, stat):
     new_data = {}
-    return
+    for item in csv_data[stat]:
+        if item not in new_data:
+            new_data[item] = 1
+        if item in new_data:
+            new_data[item] += 1
+    return new_data
+
+
+def stat_time_aggregator(csv_data):  # same as general aggregator, but divides by 1000 to convert ms to seconds
+    new_data = {}
+    for item in csv_data['track_duration_ms']:
+        if item not in new_data:
+            new_data[int(round(item/1000))] = 1
+        if item in new_data:
+            new_data[int(round(item/1000))] += 1
+    return new_data
+
+
+def x_interval_gen(stat_json, interval):
+    sorted_data = dict(sorted(stat_json.items()))
+    keys = []
+    values = []
+    for key, value in sorted_data.items():
+        keys.append(key)  # easier to work with lists, and uses max(keys) for while loop
+        values.append(value)
+
+    new_data = {}
+    interval_end = interval - 1
+    interval_start = 0
+    current_sum = 0
+    count = 0
+    while interval_end <= max(keys):
+        if keys[count] <= interval_end:
+            current_sum += values[count]
+            count += 1
+        else:  # if greater than current interval, add sum to dict, increase interval, reset sum
+            new_data[f'{interval_start}—{interval_end}'] = current_sum
+            interval_start += interval
+            interval_end += interval
+            current_sum = 0
+    return new_data
 
 
 # TODO: rework this to be more efficient
@@ -82,19 +123,19 @@ def value_labels(x, y, horizontal):
             plt.text(y[i], i, y[i], va='center')
 
 
-def bar_chart_gen(json_data, x_stat_type, y_stat_type, horizontal=False, ascending=False):
+def bar_chart_gen(json_data, x_stat_type, y_stat_type, labels=True, horizontal=False, reverse=False):
     data_keys = list(json_data.keys())
     data_values = list(json_data.values())
     title_object = chart_title_gen(x_stat_type, y_stat_type)
     plt.style.use('pitayasmoothie-dark.mplstyle')  # third-party dark background theme; not included
     # plt.style.use('seaborn-v0_8-darkgrid')  # built-in light theme
-    x_tick_interval = 4
+    x_tick_interval = 2
     x_chart_dimension = 12  # dimensions are reversed in horizontal
     y_chart_dimension = 8
     title_size = 24
     label_size = 14
 
-    if ascending:
+    if reverse:
         data_keys = list(reversed(data_keys))  # reversed for descending order
         data_values = list(reversed(data_values))
 
@@ -105,7 +146,9 @@ def bar_chart_gen(json_data, x_stat_type, y_stat_type, horizontal=False, ascendi
         plt.title(title_object['chart_title'], fontsize=title_size, fontweight='bold')
         plt.xlabel(title_object['xaxis_title'], fontsize=label_size, fontweight='bold')
         plt.ylabel(title_object['yaxis_title'], fontsize=label_size, fontweight='bold')
-        value_labels(data_keys, data_values, horizontal)
+        if labels:
+            value_labels(data_keys, data_values, horizontal)
+        # plt.annotate(f"{title_object['note']}\nMidhunters Music League Season 2", xy=(1,-0.1), xycoords='axes fraction', ha='right')
         plt.bar(data_keys, data_values, width=0.8)
     elif horizontal:
         plt.figure(figsize=(y_chart_dimension, x_chart_dimension))  # inverted in horizonal
@@ -113,9 +156,9 @@ def bar_chart_gen(json_data, x_stat_type, y_stat_type, horizontal=False, ascendi
         plt.xlabel(title_object['yaxis_title'], fontsize=label_size, fontweight='bold')  # titles are reversed in horizontal
         plt.ylabel(title_object['xaxis_title'], fontsize=label_size, fontweight='bold')
         plt.xticks(np.arange(0, max(data_values) + 1, x_tick_interval))
-        value_labels(data_keys, data_values, horizontal)
-        # plt.text(0.5, 0.2, "Hello")
-        plt.annotate("*Track artist genre\nMidhunters Music League Season 2", xy=(1,-0.1), xycoords='axes fraction', ha='right')
+        if labels:
+            value_labels(data_keys, data_values, horizontal)
+        # plt.annotate(f"{title_object['note']}\nMidhunters Music League Season 2", xy=(1,-0.1), xycoords='axes fraction', ha='right')
         plt.barh(data_keys, data_values)
 
     plt.savefig(f'charts/bar.png', dpi=300, bbox_inches='tight')  # tight fixes padding and margin
