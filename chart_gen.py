@@ -12,14 +12,13 @@ def chart_title_gen(stat_type, comparison_type):
     title_object = {'note': ''}
     match stat_type:
         case 'genres':
-            title_object['chart_title'] = "Most Submitted Genres*"
+            title_object['chart_title'] = "Artist Genres"
             title_object['xaxis_title'] = "Genre"
-            title_object['note'] = "*Track artist genres"
         case 'track_duration_ms':
-            title_object['chart_title'] = "Track Durations"
+            title_object['chart_title'] = "Track Duration"
             title_object["xaxis_title"] = "Duration (seconds)"
         case 'track_popularity':
-            title_object['chart_title'] = "Track Popularity*"
+            title_object['chart_title'] = "Track Popularity"
             title_object["xaxis_title"] = "Popularity"
     match comparison_type:
         case 'occurrences':
@@ -42,20 +41,30 @@ def csv_genre_aggregator(csv_data):
     for track in csv_data['genres']:
         list_convert = csv_list_convert(track)
         for genre in list_convert:
-            if genre not in genre_dict:
-                genre_dict[genre] = 1
             if genre in genre_dict:
                 genre_dict[genre] += 1
+            else:
+                genre_dict[genre] = 1
     return genre_dict
 
 
-def stat_general_aggregator(csv_data, stat):
+def stat_popularity_aggregator(csv_data):
     new_data = {}
-    for item in csv_data[stat]:
-        if item not in new_data:
-            new_data[item] = 1
-        if item in new_data:
-            new_data[item] += 1
+    count = 0
+    popularity_list = []
+    for track in csv_data['track_popularity']:
+        popularity_list.append(track)
+    while count <= 100:
+        if count in popularity_list:
+            if count in new_data:
+                new_data[count] += 1
+            else:
+                new_data[count] = 1
+            popularity_list.remove(count)
+        else:
+            if count not in new_data:
+                new_data[count] = 0
+            count += 1
     return new_data
 
 
@@ -69,8 +78,7 @@ def stat_time_aggregator(csv_data):  # same as general aggregator, but divides b
     return new_data
 
 
-# TODO: not giving every interval in popularity
-def x_interval_gen(stat_json, interval):
+def x_interval_gen(stat_json, interval, single_end=False):
     sorted_data = dict(sorted(stat_json.items()))
     keys = []
     values = []
@@ -93,6 +101,12 @@ def x_interval_gen(stat_json, interval):
             interval_start += interval
             interval_end += interval
             current_sum = 0
+    # catch any remaining
+    current_sum += values[count]
+    if single_end:  # if you don't want it to end in a range (ex. 0-100 popularity)
+        new_data[f'{interval_start}'] = current_sum
+    else:
+        new_data[f'{interval_start} — {interval_end}'] = current_sum
     print(new_data)
     return new_data
 
@@ -127,23 +141,24 @@ def value_labels(x, y, horizontal):
 
 
 # TODO: reformat repetitions
-def bar_chart_gen(json_data, x_stat_type, y_stat_type, labels=True, horizontal=False, reverse=False):
+def bar_chart_gen(json_data, x_stat_type, y_stat_type, x_dimension, y_dimension, x_interval, y_footer, labels=True, vertical=False, reverse=False):
     data_keys = list(json_data.keys())
     data_values = list(json_data.values())
     title_object = chart_title_gen(x_stat_type, y_stat_type)
     plt.style.use('pitayasmoothie-dark.mplstyle')  # third-party dark background theme; not included
     # plt.style.use('seaborn-v0_8-darkgrid')  # built-in light theme
-    x_tick_interval = 2
-    x_chart_dimension = 12  # dimensions are reversed in horizontal
-    y_chart_dimension = 8
+    x_tick_interval = x_interval
+    x_chart_dimension = x_dimension  # dimensions are reversed in vertical
+    y_chart_dimension = y_dimension
     title_size = 24
     label_size = 14
+    y_footer = y_footer
 
     if reverse:
         data_keys = list(reversed(data_keys))  # reversed for descending order
         data_values = list(reversed(data_values))
 
-    if not horizontal:
+    if not vertical:
         plt.figure(figsize=(x_chart_dimension, y_chart_dimension))
         plt.xticks(rotation=90, ha='center')
         plt.yticks(np.arange(0, max(data_values) + 1, x_tick_interval))  # y tick interval
@@ -151,18 +166,18 @@ def bar_chart_gen(json_data, x_stat_type, y_stat_type, labels=True, horizontal=F
         plt.xlabel(title_object['xaxis_title'], fontsize=label_size, fontweight='bold')
         plt.ylabel(title_object['yaxis_title'], fontsize=label_size, fontweight='bold')
         if labels:
-            value_labels(data_keys, data_values, horizontal)
-        # plt.annotate(f"{title_object['note']}\nMidhunters Music League Season 2", xy=(1,-0.1), xycoords='axes fraction', ha='right')
+            value_labels(data_keys, data_values, vertical)
+        plt.annotate(f"Midhunters Music League Season 2", xy=(1, y_footer), xycoords='axes fraction', ha='right')
         plt.bar(data_keys, data_values, width=0.8)
-    elif horizontal:
-        plt.figure(figsize=(y_chart_dimension, x_chart_dimension))  # inverted in horizonal
+    elif vertical:
+        plt.figure(figsize=(y_chart_dimension, x_chart_dimension))  # inverted in vertical
         plt.title(title_object['chart_title'], fontsize=title_size, fontweight='bold', pad=0)
-        plt.xlabel(title_object['yaxis_title'], fontsize=label_size, fontweight='bold')  # titles are reversed in horizontal
+        plt.xlabel(title_object['yaxis_title'], fontsize=label_size, fontweight='bold')  # titles are reversed in vertical
         plt.ylabel(title_object['xaxis_title'], fontsize=label_size, fontweight='bold')
         plt.xticks(np.arange(0, max(data_values) + 1, x_tick_interval))
         if labels:
-            value_labels(data_keys, data_values, horizontal)
-        # plt.annotate(f"{title_object['note']}\nMidhunters Music League Season 2", xy=(1,-0.1), xycoords='axes fraction', ha='right')
+            value_labels(data_keys, data_values, vertical)
+        plt.annotate(f"Midhunters Music League Season 2", xy=(1, y_footer), xycoords='axes fraction', ha='right')
         plt.barh(data_keys, data_values)
 
     plt.savefig(f'charts/bar.png', dpi=300, bbox_inches='tight')  # tight fixes padding and margin
