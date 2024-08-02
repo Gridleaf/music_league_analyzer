@@ -9,10 +9,11 @@ def multiplaylist_check(json_data):  # return True if multiple playlists
 
 
 def ms_to_readable_time(time_ms):
-    raw_minutes = (time_ms / 1000) / 60
-    time_minutes = floor(raw_minutes)
-    time_seconds = floor((raw_minutes - time_minutes) * 60)
-    return time_minutes, time_seconds
+    raw_seconds = round(time_ms / 1000)
+    time_hours = floor((raw_seconds / 60) / 60)
+    time_minutes = floor((((raw_seconds / 60) / 60) - time_hours) * 60)
+    time_seconds = raw_seconds - ((time_minutes * 60) + ((time_hours * 60) * 60))
+    return time_hours, time_minutes, time_seconds
 
 
 def int_list_median(int_list):

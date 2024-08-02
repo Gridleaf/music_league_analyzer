@@ -20,6 +20,9 @@ def chart_title_gen(stat_type, comparison_type):
         case 'track_popularity':
             title_object['chart_title'] = "Track Popularity"
             title_object["xaxis_title"] = "Popularity"
+        case 'album_year':
+            title_object['chart_title'] = "Album Release Year*"
+            title_object['xaxis_title'] = "Year"
     match comparison_type:
         case 'occurrences':
             title_object['yaxis_title'] = 'Occurrences'
@@ -34,6 +37,23 @@ def csv_list_convert(string):
             new_string = new_string.replace(character, '')
     new_string = new_string.split(', ')
     return new_string
+
+
+def stat_year_aggregator(csv_data):
+    new_data = {}
+    year_list = []  # to search if added; can't search for strings
+    for track in csv_data['album_year']:
+        year_list.append(track)
+    sorted_list = sorted(year_list)
+
+    added_list = []
+    for year in sorted_list:
+        if year in added_list:
+            new_data[str(year)] += 1  # convert to string for label compatibility
+        else:
+            new_data[str(year)] = 1
+            added_list.append(year)
+    return new_data
 
 
 def csv_genre_aggregator(csv_data):
@@ -85,7 +105,6 @@ def x_interval_gen(stat_json, interval, single_end=False):
     for key, value in sorted_data.items():
         keys.append(key)  # easier to work with lists, and uses max(keys) for while loop
         values.append(value)
-    print(keys, values)
 
     new_data = {}
     interval_end = interval - 1
@@ -97,7 +116,7 @@ def x_interval_gen(stat_json, interval, single_end=False):
             current_sum += values[count]
             count += 1
         else:  # if greater than current interval, add sum to dict, increase interval, reset sum
-            new_data[f'{interval_start} — {interval_end}'] = current_sum
+            new_data[f'{interval_start} - {interval_end}'] = current_sum
             interval_start += interval
             interval_end += interval
             current_sum = 0
@@ -106,8 +125,7 @@ def x_interval_gen(stat_json, interval, single_end=False):
     if single_end:  # if you don't want it to end in a range (ex. 0-100 popularity)
         new_data[f'{interval_start}'] = current_sum
     else:
-        new_data[f'{interval_start} — {interval_end}'] = current_sum
-    print(new_data)
+        new_data[f'{interval_start} - {interval_end}'] = current_sum
     return new_data
 
 
@@ -131,11 +149,13 @@ def x_filter(json_data, x_min=0, x_max=float('inf'), y_start=0, y_end=float('inf
     return new_data
 
 
-def value_labels(x, y, horizontal):
-    if not horizontal:
+def value_labels(x, y, vertical):
+    if not vertical:
         for i in range(len(x)):
+            print(i, y[i])
+            # plt.text(1,1,"Hello")
             plt.text(i, y[i], y[i], ha='center')
-    if horizontal:
+    if vertical:
         for i in range(len(x))[::-1]:  # reverse for descending order
             plt.text(y[i], i, y[i], va='center')
 
